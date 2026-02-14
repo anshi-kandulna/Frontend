@@ -3,6 +3,7 @@ venv/
 
 # Documentation
 B4_WORKFLOW_ARCHITECTURE.md
+notes.md
 
 # Python cache
 __pycache__/
