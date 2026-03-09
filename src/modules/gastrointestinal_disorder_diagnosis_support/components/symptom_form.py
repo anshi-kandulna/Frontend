@@ -1,6 +1,11 @@
 # components/symptom_form.py
 
 import streamlit as st
+import sys
+import os
+
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 def symptom_form():
     """
@@ -20,7 +25,7 @@ def symptom_form():
     ]
     selected_symptoms = []
     for symptom in symptoms:
-        if st.checkbox(symptom):
+        if st.checkbox(symptom, key=f"checkbox_{symptom}"):
             selected_symptoms.append(symptom)
     
     symptom_data['symptoms'] = selected_symptoms
@@ -68,8 +73,16 @@ def symptom_form():
     
     # 8. Submit Button
     if st.button("Record Symptoms"):
-        return symptom_data
-    
-    return None
+        from services.symptom_service import SymptomService
+        
+        patient_id = st.session_state.get("patient_id", "patient_001")
+        response = SymptomService.submit_symptoms(patient_id, symptom_data)
+        
+        if response.get('success'):
+            st.success(f"✓ Symptoms recorded! ID: {response.get('id')}")
+        else:
+            st.error(f"Error: {response.get('error', 'Unknown error')}")
+
+symptom_form()
 
 symptom_form()
