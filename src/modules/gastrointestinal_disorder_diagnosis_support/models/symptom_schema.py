@@ -21,9 +21,7 @@ class SymptomSchema:
             "patient_id": "string",  # Link to patient
             "symptoms": "List[string]",  # ['Abdominal Pain', 'Diarrhea', ...]
             "severity": {
-                "Abdominal Pain": "int (1-10)",
-                "Diarrhea": "int (1-10)",
-                # ... dynamic based on selected symptoms
+                "[symptom_name]": "int (1-10)"  # Where [symptom_name] = any symptom from the 'symptoms' array
             },
             "onset_date": "datetime",  # When symptoms started
             "frequency": "string",  # 'Occasional' | 'Frequent' | 'Constant'
@@ -56,11 +54,11 @@ class SymptomSchema:
 
 
 # MongoDB Collection Creation (run once in backend)
-SYMPTOM_COLLECTION = {
-    "name": "patient_symptoms",
-    "indexes": [
-        {"key": "patient_id", "unique": False},
-        {"key": "created_at", "unique": False},
-        {"key": ["patient_id", "created_at"], "unique": False}
-    ]
-}
+# SYMPTOM_COLLECTION = {
+#     "name": "patient_symptoms",
+#     "indexes": [
+#         {"key": "patient_id", "unique": False},
+#         {"key": "created_at", "unique": False},
+#         {"key": ["patient_id", "created_at"], "unique": False}
+#     ]
+# }

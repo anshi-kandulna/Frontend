@@ -5,32 +5,20 @@ Receives data from frontend and saves to MongoDB
 """
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional, Dict
 from datetime import datetime
 import os
 from pymongo import MongoClient
+#from models.symptom_schema import SYMPTOM_COLLECTION
+
 from dotenv import load_dotenv
 
 load_dotenv()
 
 # Initialize MongoDB
 MONGO_URI = os.getenv("MONGO_URI")
-print(f"🔍 Attempting to connect to MongoDB with URI: {MONGO_URI}")
-
-# Debug: Check if URI is loaded
-if not MONGO_URI:
-    print("ERROR: MONGO_URI not set in .env file!")
-else:
-    print(f"✓ MongoDB URI loaded (database: patient)")
-
-try:
-    client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
-    # Test connection
-    client.admin.command('ping')
-    print("✓ Connected to MongoDB Atlas")
-except Exception as e:
-    print(f"✗ MongoDB connection error: {e}")
+client = MongoClient(MONGO_URI)
 
 db = client['patient']  # Database name
 symptoms_collection = db['patient_symptoms']
@@ -39,16 +27,16 @@ symptoms_collection = db['patient_symptoms']
 symptom_router = APIRouter(prefix="/api/symptoms", tags=["symptoms"])
 
 # Request models
+# Receive symptom data from frontend and save to MongoDB
 class SymptomRequest(BaseModel):
     patient_id: str
-    symptoms: List[str]
+    symptoms: List[str] = Field(min_items=1, description="At least one symptom required")
     severity: Optional[Dict[str, int]] = None
     onset_date: Optional[str] = None
     frequency: Optional[str] = None
     time_of_day: Optional[str] = None
     triggers: Optional[List[str]] = None
     notes: Optional[str] = None
-    created_at: Optional[str] = None
 
 class SymptomResponse(BaseModel):
     success: bool
@@ -61,10 +49,6 @@ def create_symptom(data: SymptomRequest):
     Receive symptom data from frontend and save to MongoDB
     """
     try:
-        print("\n" + "="*50)
-        print("📝 SYMPTOM REQUEST RECEIVED")
-        print("="*50)
-        
         # Validate required fields
         if not data.patient_id:
             raise HTTPException(status_code=400, detail="patient_id required")
@@ -74,26 +58,12 @@ def create_symptom(data: SymptomRequest):
         symptom_data['created_at'] = datetime.now()
         symptom_data['updated_at'] = datetime.now()
         
-        print(f"✓ Patient ID: {data.patient_id}")
-        print(f"✓ Symptoms: {data.symptoms}")
-        print(f"✓ Data to insert: {symptom_data}")
-        print(f"✓ Database: patient")
-        print(f"✓ Collection: patient_symptoms")
         
         # Save to MongoDB
         result = symptoms_collection.insert_one(symptom_data)
         
         print(f"✓ INSERT SUCCESSFUL!")
         print(f"✓ Document ID: {result.inserted_id}")
-        
-        # Verify it was actually saved by reading it back
-        verify = symptoms_collection.find_one({"_id": result.inserted_id})
-        if verify:
-            print(f"✓ VERIFIED: Data found in MongoDB!")
-        else:
-            print(f"⚠️ WARNING: Data inserted but not found on read-back!")
-        
-        print("="*50 + "\n")
         
         return {
             "success": True,
@@ -103,7 +73,6 @@ def create_symptom(data: SymptomRequest):
     
     except Exception as e:
         print(f"\n❌ ERROR: {str(e)}")
-        print("="*50 + "\n")
         raise HTTPException(status_code=500, detail=str(e))
 
 @symptom_router.get("/{patient_id}")
@@ -122,7 +91,9 @@ def get_symptoms(patient_id: str):
             symptom['_id'] = str(symptom['_id'])
             if 'created_at' in symptom:
                 symptom['created_at'] = symptom['created_at'].isoformat()
-        
+
+        print(f"✓ RETRIEVED {len(symptoms)} SYMPTOM RECORD(S) FOR PATIENT ID: {patient_id}")
+
         return {
             "success": True,
             "data": symptoms

@@ -1,7 +1,15 @@
 # components/stool_form.py
 
+# import streamlit as st
+# from datetime import datetime
+
 import streamlit as st
-from datetime import datetime
+import sys
+import os
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from services.stool_service import StoolService
 
 def stool_form():
     """
@@ -14,11 +22,7 @@ def stool_form():
     
     # 1. Date and Time
     st.subheader("When")
-    col1, col2 = st.columns(2)
-    with col1:
-        stool_data['date'] = st.date_input("Date of bowel movement")
-    with col2:
-        stool_data['time'] = st.time_input("Time")
+    stool_data['date'] = st.date_input("Date of bowel movement")
     
     # 2. Bristol Stool Chart (7 types)
     st.subheader("Stool Consistency (Bristol Stool Chart)")
@@ -43,7 +47,7 @@ def stool_form():
     # 3. Color
     st.subheader("Stool Color")
     stool_data['color'] = st.selectbox(
-        "Stool Color",
+        "Select stool color",
         [
             "Brown (Normal)",
             "Light/Pale",
@@ -111,9 +115,26 @@ def stool_form():
     
     # 10. Submit Button
     if st.button("Record Stool Analysis"):
-        return stool_data
+        try:
+            patient_id = st.session_state.get("patient_id", "patient_001")
+            
+            # Debug: Show what we're sending
+            #st.write("📝 Submitting data...")
+            
+            response = StoolService.submit_stool_data(patient_id, stool_data)
+            
+            # Debug: Show the response
+            #st.write(f"Response: {response}")
+            
+            if response.get('success'):
+                st.success(f"✓ Stool record created! ID: {response.get('id')}")
+            else:
+                st.error(f"Backend Error: {response.get('error', 'Unknown error')}")
+        except Exception as e:
+            st.error(f"❌ Error: {str(e)}")
+            st.write(f"Full error details: {type(e).__name__}: {e}")
+
     
-    return None
 
 
 stool_form()
