@@ -39,7 +39,6 @@ class StoolService:
                 - on_medication: bool
                 - medication_name: str
                 - recent_antibiotics: bool
-                - notes: str
         
         Returns:
             Response from backend with success/error message
@@ -59,9 +58,8 @@ class StoolService:
                 "blood_amount": stool_data.get('blood_amount'),
                 "symptoms": stool_data.get('symptoms', []),
                 "on_medication": stool_data.get('on_medication'),
-                "medication_name": stool_data.get('medication_name'),
+                "medication_name": stool_data.get('medication_name') if stool_data.get('on_medication') and stool_data.get('medication_name') != '' else None,
                 "recent_antibiotics": stool_data.get('recent_antibiotics'),
-                "notes": stool_data.get('notes', ''),
                 "created_at": datetime.now().isoformat()
             }
             

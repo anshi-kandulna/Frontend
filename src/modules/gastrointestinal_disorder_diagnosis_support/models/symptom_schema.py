@@ -5,7 +5,7 @@ Matches the frontend symptom_form.py structure
 """
 
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Dict
 
 class SymptomSchema:
     """
@@ -18,18 +18,14 @@ class SymptomSchema:
     def schema():
         return {
             "_id": "ObjectId",  # Auto-generated MongoDB ID
-            "patient_id": "string",  # Link to patient
-            "symptoms": "List[string]",  # ['Abdominal Pain', 'Diarrhea', ...]
-            "severity": {
-                "[symptom_name]": "int (1-10)"  # Where [symptom_name] = any symptom from the 'symptoms' array
-            },
+            "patient_id": "ObjectId",  # Link to patient
+            "symptoms": "List[Dict]",  # [{'symptom_name': 'Abdominal Pain', 'severity_rating': 7}, ...]
             "onset_date": "datetime",  # When symptoms started
             "frequency": "string",  # 'Occasional' | 'Frequent' | 'Constant'
             "time_of_day": "string",  # 'Morning' | 'Afternoon' | 'Evening' | 'Night' | 'Any time'
             "triggers": "List[string]",  # ['Spicy Food', 'Dairy', 'Stress', ...]
-            "notes": "string",  # Additional notes
             "created_at": "datetime",  # Timestamp when record created
-            "updated_at": "datetime"  # Timestamp when record updated
+            #"updated_at": "datetime"  # Timestamp when record updated
         }
     
     @staticmethod
@@ -37,17 +33,21 @@ class SymptomSchema:
         """Example MongoDB document"""
         return {
             "_id": "ObjectId",
-            "patient_id": "patient_001",
-            "symptoms": ["Abdominal Pain", "Nausea"],
-            "severity": {
-                "Abdominal Pain": 7,
-                "Nausea": 5
-            },
+            "patient_id": "001",
+            "symptoms": [
+                {
+                    "symptom_name": "Abdominal Pain",
+                    "severity_rating": 7
+                },
+                {
+                    "symptom_name": "Nausea",
+                    "severity_rating": 5
+                }
+            ],
             "onset_date": datetime(2026, 3, 5),
             "frequency": "Frequent",
             "time_of_day": "Morning",
             "triggers": ["Spicy Food", "Stress"],
-            "notes": "Pain increases after eating",
             "created_at": datetime.now(),
             "updated_at": datetime.now()
         }

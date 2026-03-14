@@ -12,7 +12,7 @@ import os
 from dotenv import load_dotenv
 
 # Import routes
-from routes import symptom_router, stool_router
+from routes import symptom_router, stool_router, diet_router, alarm_router
 
 load_dotenv()
 
@@ -35,6 +35,8 @@ app.add_middleware(
 # Include routers
 app.include_router(symptom_router)
 app.include_router(stool_router)
+app.include_router(diet_router)
+app.include_router(alarm_router)
 
 # Health check endpoint
 @app.get("/health")

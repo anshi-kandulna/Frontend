@@ -21,11 +21,11 @@ def stool_form():
     stool_data = {}
     
     # 1. Date and Time
-    st.subheader("When")
+    st.subheader("When *")
     stool_data['date'] = st.date_input("Date of bowel movement")
     
     # 2. Bristol Stool Chart (7 types)
-    st.subheader("Stool Consistency (Bristol Stool Chart)")
+    st.subheader("Stool Consistency (Bristol Stool Chart) *")
     
     bristol_options = {
         "Type 1": "Separate hard lumps, like nuts (Constipation)",
@@ -60,7 +60,7 @@ def stool_form():
     )
     
     # 4. Frequency
-    st.subheader("Frequency")
+    st.subheader("Frequency *")
     stool_data['frequency'] = st.selectbox(
         "How often per day?",
         ["1", "2", "3", "4", "5+"]
@@ -110,29 +110,45 @@ def stool_form():
     stool_data['recent_antibiotics'] = st.checkbox("Recent antibiotics?")
     
     # 9. Notes
-    st.subheader("Additional Notes")
-    stool_data['notes'] = st.text_area("Any additional observations")
+    # st.subheader("Additional Notes")
+    # stool_data['notes'] = st.text_area("Any additional observations")
     
     # 10. Submit Button
     if st.button("Record Stool Analysis"):
-        try:
-            patient_id = st.session_state.get("patient_id", "patient_001")
-            
-            # Debug: Show what we're sending
-            #st.write("📝 Submitting data...")
-            
-            response = StoolService.submit_stool_data(patient_id, stool_data)
-            
-            # Debug: Show the response
-            #st.write(f"Response: {response}")
-            
-            if response.get('success'):
-                st.success(f"✓ Stool record created! ID: {response.get('id')}")
-            else:
-                st.error(f"Backend Error: {response.get('error', 'Unknown error')}")
-        except Exception as e:
-            st.error(f"❌ Error: {str(e)}")
-            st.write(f"Full error details: {type(e).__name__}: {e}")
+        errors = []
+        
+        # Validate required fields
+        if stool_data.get('date') is None:
+            errors.append("❌ Please select a date")
+        
+        if not stool_data.get('bristol_type'):
+            errors.append("❌ Please select a stool consistency type")
+        
+        if not stool_data.get('frequency'):
+            errors.append("❌ Please select a frequency")
+        
+        if errors:
+            for error in errors:
+                st.error(error)
+        else:
+            try:
+                patient_id = st.session_state.get("patient_id", "patient_001")
+                
+                # Debug: Show what we're sending
+                #st.write("📝 Submitting data...")
+                
+                response = StoolService.submit_stool_data(patient_id, stool_data)
+                
+                # Debug: Show the response
+                #st.write(f"Response: {response}")
+                
+                if response.get('success'):
+                    st.success(f"✓ Stool record created! ID: {response.get('id')}")
+                else:
+                    st.error(f"Backend Error: {response.get('error', 'Unknown error')}")
+            except Exception as e:
+                st.error(f"❌ Error: {str(e)}")
+                st.write(f"Full error details: {type(e).__name__}: {e}")
 
     
 

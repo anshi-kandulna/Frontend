@@ -18,7 +18,7 @@ class StoolSchema:
     def schema():
         return {
             "_id": "ObjectId",  # Auto-generated MongoDB ID
-            "patient_id": "string",  # Link to patient
+            "patient_id": "ObjectId",  # Link to patient
             "date": "date",  # Date of bowel movement
             "bristol_type": "string",  # 'Type 1' to 'Type 7'
             "color": "string",  # Stool color
@@ -30,7 +30,6 @@ class StoolSchema:
             "on_medication": "bool",  # Whether the patient is on medication
             "medication_name": "string",  # Name of the medication (optional)
             "recent_antibiotics": "bool",  # Whether the patient has taken antibiotics recently
-            "notes": "string",  # Additional notes
             "created_at": "datetime",  # Timestamp when record created
-            "updated_at": "datetime"  # Timestamp when record updated
+            #"updated_at": "datetime"  # Timestamp when record updated
         }

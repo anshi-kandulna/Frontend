@@ -2,6 +2,12 @@
 
 import streamlit as st
 from datetime import datetime
+import sys
+import os
+
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from services.alarm_service import AlarmService
 
 def alarm_form():
     """
@@ -17,7 +23,7 @@ def alarm_form():
     # 1. Severe Dehydration
     st.subheader("Severe Dehydration")
     has_dehydration = st.checkbox("Signs of severe dehydration?")
-    alarm_data['dehydration'] = has_dehydration
+    alarm_data['severe_dehydration'] = has_dehydration
     
     if has_dehydration:
         alarm_flags.append("Severe Dehydration")
@@ -33,9 +39,9 @@ def alarm_form():
                 "Fainting"
             ]
         )
-        alarm_data['dehydration_signs'] = dehydration_signs
-        st.error("⛔ Severe dehydration requires immediate medical attention. Go to ER or call emergency services!")
-    
+        alarm_data['signs_of_dehydration'] = dehydration_signs
+        #st.error("⛔ Severe dehydration requires immediate medical attention. Go to ER or call emergency services!")
+
     # 2. Weight Loss
     st.subheader("Weight Loss")
     has_weight_loss = st.checkbox("Experienced unexplained weight loss?")
@@ -55,8 +61,9 @@ def alarm_form():
                 "Over how long?",
                 ["1 week", "2 weeks", "1 month", "2 months", "3+ months"]
             )
+
         
-        st.error("⛔ Unexplained weight loss is a warning sign. Seek medical advice.")
+        #st.error("⛔ Unexplained weight loss is a warning sign. Seek medical advice.")
     
     # 3. Bleeding/Blood in Stool
     st.subheader("Bleeding")
@@ -77,12 +84,12 @@ def alarm_form():
                 ["Once", "Occasionally", "Frequent", "Every time"]
             )
         
-        st.error("⛔ Rectal bleeding requires medical evaluation.")
+        #st.error("⛔ Rectal bleeding requires medical evaluation.")
     
     # 4. Nocturnal Symptoms
     st.subheader("Nocturnal Symptoms")
     has_nocturnal = st.checkbox("Symptoms waking you at night?")
-    alarm_data['nocturnal'] = has_nocturnal
+    alarm_data['nocturnal_symptoms'] = has_nocturnal
     
     if has_nocturnal:
         alarm_flags.append("Nocturnal Symptoms")
@@ -98,19 +105,19 @@ def alarm_form():
                 ["Once", "2-3 times", "Multiple times"]
             )
         
-        st.error("⛔ Nocturnal symptoms suggest significant condition. Seek medical advice.")
+        #st.error("⛔ Nocturnal symptoms suggest significant condition. Seek medical advice.")
     
     # 5. Family History
     st.subheader("Family History")
     st.write("Do you have family members with these conditions?")
     
     family_conditions = {
-        "IBD": st.checkbox("Inflammatory Bowel Disease (Crohn's/Ulcerative Colitis)"),
-        "Celiac": st.checkbox("Celiac Disease"),
-        "IBS": st.checkbox("Irritable Bowel Syndrome"),
-        "Colorectal_Cancer": st.checkbox("Colorectal Cancer"),
-        "Gastric_Cancer": st.checkbox("Gastric Cancer"),
-        "Polyps": st.checkbox("Polyps")
+        "IBD": st.checkbox("Inflammatory Bowel Disease (Crohn's/Ulcerative Colitis)", key="family_IBD"),
+        "Celiac": st.checkbox("Celiac Disease", key="family_Celiac"),
+        "IBS": st.checkbox("Irritable Bowel Syndrome", key="family_IBS"),
+        "Colorectal_Cancer": st.checkbox("Colorectal Cancer", key="family_Colorectal_Cancer"),
+        "Gastric_Cancer": st.checkbox("Gastric Cancer", key="family_Gastric_Cancer"),
+        "Polyps": st.checkbox("Polyps", key="family_Polyps")
     }
     
     family_history = [k for k, v in family_conditions.items() if v]
@@ -122,7 +129,7 @@ def alarm_form():
     
     if "IBD" in family_history or "Celiac" in family_history:
         alarm_flags.append("Family History of Serious GI Disease")
-        st.info("ℹ️ Your family history increases risk. Monitor symptoms closely.")
+        # st.info("ℹ️ Your family history increases risk. Monitor symptoms closely.")
     
     # 6. Fever
     st.subheader("Fever")
@@ -136,27 +143,37 @@ def alarm_form():
             min_value=38.0,
             step=0.1
         )
-        st.error("⛔ Fever with GI symptoms suggests infection. Seek medical care.")
+        #st.error("⛔ Fever with GI symptoms suggests infection. Seek medical care.")
     
     # 7. Summary of Alarms
-    st.subheader("Alarm Summary")
-    if alarm_flags:
-        st.error(f"🚨 **{len(alarm_flags)} Red Flag(s) Detected:**")
-        for i, flag in enumerate(alarm_flags, 1):
-            st.error(f"  {i}. {flag}")
-        st.error("**Please consult a healthcare provider immediately!**")
-    else:
-        st.success("✅ No red flag symptoms detected. Continue monitoring.")
+    # st.subheader("Alarm Summary")
+    # if alarm_flags:
+    #     st.error(f"🚨 **{len(alarm_flags)} Red Flag(s) Detected:**")
+    #     for i, flag in enumerate(alarm_flags, 1):
+    #         st.error(f"  {i}. {flag}")
+    #     st.error("**Please consult a healthcare provider immediately!**")
+    # else:
+    #     st.success("✅ No red flag symptoms detected. Continue monitoring.")
     
     # 8. Additional Notes
-    st.subheader("Additional Information")
-    alarm_data['notes'] = st.text_area("Any other concerning symptoms?")
+    # st.subheader("Additional Information")
+    # alarm_data['notes'] = st.text_area("Any other concerning symptoms?")
     
     # 9. Submit Button
     if st.button("Record Alarm Assessment"):
-        return alarm_data
-    
-    return None
+        try:
+            patient_id = st.session_state.get("patient_id", "patient_001")
+            
+            response = AlarmService.submit_alarm_data(patient_id, alarm_data)
+            
+            if response.get('success'):
+                st.success(f"✓ Alarm record created! ID: {response.get('id')}")
+            else:
+                st.error(f"Backend Error: {response.get('error', 'Unknown error')}")
+        except Exception as e:
+            st.error(f"❌ Error: {str(e)}")
+            st.write(f"Full error details: {type(e).__name__}: {e}")
+
 
 
 alarm_form()

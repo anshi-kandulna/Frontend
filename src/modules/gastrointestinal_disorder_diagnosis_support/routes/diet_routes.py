@@ -1,6 +1,6 @@
-# routes/stool_routes.py
+# routes/diet_routes.py
 """
-FastAPI routes for handling stool data
+FastAPI routes for handling diet data
 Receives data from frontend and saves to MongoDB
 """
 
@@ -20,59 +20,53 @@ MONGO_URI = os.getenv("MONGO_URI")
 client = MongoClient(MONGO_URI)
 
 db = client['patient']  # Database name
-stool_collection = db['patient_stool']  # Collection name
+diet_collection = db['patient_diet']  # Collection name
 
 # Create FastAPI Router
-stool_router = APIRouter(prefix="/api/stool", tags=["stool"])
+diet_router = APIRouter(prefix="/api/diet", tags=["diet"])
 
 # Request models
-class StoolRequest(BaseModel):
+class DietRequest(BaseModel):
     #model_config = ConfigDict(arbitrary_types_allowed=True)
     #patient_id: ObjectId
     patient_id: str
-    date: datetime #pydantic will automatically convert date string to datetime object
-    bristol_type: str 
-    color: Optional[str] = None
-    frequency: str
-    abnormal_features: List[str] = []
-    blood_type: Optional[str] = None 
-    blood_amount: Optional[str] = None
-    symptoms: List[str] = []
-    on_medication: bool 
-    medication_name: Optional[str] = None
-    recent_antibiotics: bool 
+    meal_time: datetime
+    food_category: List[str]
+    portion_size: Optional[str] = None
+    allergens: List[str] = []
+    symptoms_after_eating: List[str] = []
     created_at: datetime
 
-class StoolResponse(BaseModel):
+class DietResponse(BaseModel):
     success: bool
     message: str
     id: Optional[str] = None
 
-@stool_router.post("", response_model=StoolResponse)
-def create_stool(data: StoolRequest):
+@diet_router.post("", response_model=DietResponse)
+def create_diet(data: DietRequest):
     """
-    Receive stool data from frontend and save to MongoDB
+    Receive diet data from frontend and save to MongoDB
     """
     try:
         # Validate required fields
         if not data.patient_id:
             raise HTTPException(status_code=400, detail="patient_id required")
-        
-        # Convert to dict and add timestamps
-        stool_data = data.dict(exclude_none=True)
-       
+
+        # Convert to dict 
+        diet_data = data.dict(exclude_none=True)
+
         # Save to MongoDB
-        result = stool_collection.insert_one(stool_data)
-        
+        result = diet_collection.insert_one(diet_data)
+
         print(f"✓ INSERT SUCCESSFUL!")
         print(f"✓ Document ID: {result.inserted_id}")
-        
+
         return {
             "success": True,
-            "message": "Stool record created",
+            "message": "Diet record created",
             "id": str(result.inserted_id)
         }
-    
+
     except Exception as e:
         print(f"\n❌ ERROR: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

@@ -8,7 +8,7 @@ import os
 
 from dotenv import load_dotenv
 import requests
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 from datetime import datetime
 
 load_dotenv()  
@@ -26,27 +26,24 @@ class SymptomService:
         Args:
             patient_id: ID of the patient
             symptom_data: Dict from symptom_form() containing:
-                - symptoms: List[str]
-                - {symptom}_severity: int for each symptom
+                - symptoms: List[Dict]  # [{'symptom_name': 'Abdominal Pain', 'severity_rating': 7}, ...]
                 - onset_date: date
                 - frequency: str
                 - time_of_day: str
                 - triggers: List[str]
-                - notes: str
         
         Returns:
             Response from backend with success/error message
         """
         try:
+            onset_date = symptom_data.get('onset_date')
             payload = {
                 "patient_id": patient_id,
-                "symptoms": symptom_data.get('symptoms', []),
-                "severity": SymptomService._extract_severities(symptom_data),
-                "onset_date": str(symptom_data.get('onset_date')),
+                "symptoms": symptom_data.get('symptoms'),
+                "onset_date": str(onset_date) if onset_date is not None else None,
                 "frequency": symptom_data.get('frequency'),
                 "time_of_day": symptom_data.get('time_of_day'),
-                "triggers": symptom_data.get('triggers', []),
-                "notes": symptom_data.get('notes', ''),
+                "triggers": symptom_data.get('triggers', []), #is not [] compares object identity, not value. Every time you create [], it's a different object, so some_list is not [] will always be True (even for empty lists).
                 "created_at": datetime.now().isoformat()
             }
             
@@ -59,15 +56,6 @@ class SymptomService:
         except Exception as e:
             return {"error": str(e), "success": False}
     
-    @staticmethod
-    def _extract_severities(symptom_data: Dict) -> Dict:
-        """Extract severity ratings for each symptom"""
-        severities = {}
-        for key, value in symptom_data.items():
-            if "_severity" in key:
-                symptom_name = key.replace("_severity", "")
-                severities[symptom_name] = value
-        return severities
     
     @staticmethod
     def get_patient_symptoms(patient_id: str) -> Dict:

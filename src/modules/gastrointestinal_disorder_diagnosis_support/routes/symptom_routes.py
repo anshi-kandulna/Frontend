@@ -5,11 +5,12 @@ Receives data from frontend and saves to MongoDB
 """
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional, Dict
 from datetime import datetime
 import os
 from pymongo import MongoClient
+from bson import ObjectId
 #from models.symptom_schema import SYMPTOM_COLLECTION
 
 from dotenv import load_dotenv
@@ -26,17 +27,21 @@ symptoms_collection = db['patient_symptoms']
 # Create FastAPI Router
 symptom_router = APIRouter(prefix="/api/symptoms", tags=["symptoms"])
 
+class Symptom(BaseModel):
+    symptom_name: str = Field(..., description="Name of the symptom")
+    severity_rating: int = Field(..., ge=1, le=10, description="Severity rating 1-10")
+
 # Request models
-# Receive symptom data from frontend and save to MongoDB
 class SymptomRequest(BaseModel):
+    #model_config = ConfigDict(arbitrary_types_allowed=True)
+    #patient_id: ObjectId
     patient_id: str
-    symptoms: List[str] = Field(min_items=1, description="At least one symptom required")
-    severity: Optional[Dict[str, int]] = None
-    onset_date: Optional[str] = None
+    symptoms: List[Symptom] = Field(min_items=1, description="At least one symptom required")
+    onset_date: Optional[datetime] = None
     frequency: Optional[str] = None
     time_of_day: Optional[str] = None
-    triggers: Optional[List[str]] = None
-    notes: Optional[str] = None
+    triggers: List[str] = []
+    created_at: datetime
 
 class SymptomResponse(BaseModel):
     success: bool
@@ -55,9 +60,6 @@ def create_symptom(data: SymptomRequest):
         
         # Convert to dict and add timestamps
         symptom_data = data.dict(exclude_none=True)
-        symptom_data['created_at'] = datetime.now()
-        symptom_data['updated_at'] = datetime.now()
-        
         
         # Save to MongoDB
         result = symptoms_collection.insert_one(symptom_data)
