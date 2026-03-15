@@ -148,15 +148,33 @@ def patient_dashboard():
         "I - Integrated Capstone Projects"
     ])
 
+    # Only update when sidebar selection changes
+    if "last_sidebar" not in st.session_state:
+        st.session_state.last_sidebar = selected
+
+    if selected != st.session_state.last_sidebar:
+
+        if selected == "Dashboard":
+            st.session_state.view = "main"
+            st.session_state.selected_category = None
+            st.session_state.selected_module = None
+
+        elif selected in CATEGORIES:
+            st.session_state.selected_category = selected
+            st.session_state.view = "category"
+            st.session_state.selected_module = None
+
+        st.session_state.last_sidebar = selected
+
     # Handle sidebar selection
-    if selected != "Dashboard" and selected in CATEGORIES:
-        st.session_state.selected_category = selected
-        st.session_state.view = "category"
-        st.session_state.selected_module = None
-    elif selected == "Dashboard":
-        st.session_state.view = "main"
-        st.session_state.selected_category = None
-        st.session_state.selected_module = None
+    # if selected != "Dashboard" and selected in CATEGORIES:
+    #     st.session_state.selected_category = selected
+    #     st.session_state.view = "category"
+    #     st.session_state.selected_module = None
+    # elif selected == "Dashboard":
+    #     st.session_state.view = "main"
+    #     st.session_state.selected_category = None
+    #     st.session_state.selected_module = None
 
     # ROUTER
     if st.session_state.view == "category":
@@ -367,24 +385,27 @@ def show_module_detail():
     st.markdown(f"*{desc}*")
     
     # Tabs
-    tab = st.radio("", ["🏠 Home", "🔗 ER Diagram", "📋 Tables", "🔍 SQL Query", "⚡ Triggers", "📊 Output"], horizontal=True)
+    tab = st.radio("Select Tab", ["🏠 Home", "🔗 ER Diagram", "📋 Tables", "🔍 SQL Query", "⚡ Triggers", "📊 Output"], horizontal=True, label_visibility="collapsed")
     st.divider()
     
     if tab == "🏠 Home":
         st.info(f"**{name}** - {desc}")
         
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("### Input Entities")
-            st.success("1️⃣ Patient Form")
-            st.success("2️⃣ Insurance Details")
-            st.success("3️⃣ Emergency Contact")
+        # col1, col2 = st.columns(2)
+        # with col1:
+        #     st.markdown("### Input Entities")
+        #     st.success("1️⃣ Patient Form")
+        #     st.success("2️⃣ Insurance Details")
+        #     st.success("3️⃣ Emergency Contact")
         
-        with col2:
-            st.markdown("### Output Entities")
-            st.success("1️⃣ Patient Record")
-            st.success("2️⃣ Admission Summary")
-            st.success("3️⃣ Patient ID")
+        # with col2:
+        #     st.markdown("### Output Entities")
+        #     st.success("1️⃣ Patient Record")
+        #     st.success("2️⃣ Admission Summary")
+        #     st.success("3️⃣ Patient ID")
+
+        from src.modules.gastrointestinal_disorder_diagnosis_support.components import gi_dashboard
+        gi_dashboard()
     
     elif tab == "🔗 ER Diagram":
         st.markdown("### Entity Relationship Diagram")
