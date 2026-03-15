@@ -159,21 +159,4 @@ def alarm_form():
     # st.subheader("Additional Information")
     # alarm_data['notes'] = st.text_area("Any other concerning symptoms?")
     
-    # 9. Submit Button
-    if st.button("Record Alarm Assessment"):
-        try:
-            patient_id = st.session_state.get("patient_id", "patient_001")
-            
-            response = AlarmService.submit_alarm_data(patient_id, alarm_data)
-            
-            if response.get('success'):
-                st.success(f"✓ Alarm record created! ID: {response.get('id')}")
-            else:
-                st.error(f"Backend Error: {response.get('error', 'Unknown error')}")
-        except Exception as e:
-            st.error(f"❌ Error: {str(e)}")
-            st.write(f"Full error details: {type(e).__name__}: {e}")
-
-
-
-alarm_form()
+    return alarm_data

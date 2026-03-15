@@ -10,6 +10,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 def symptom_form():
     """
     Collect GI symptom data
+    Returns: dict with symptom data
     """
     st.header("Symptom Assessment")
     
@@ -74,23 +75,7 @@ def symptom_form():
     )
     symptom_data['triggers'] = triggers
     
-    # 7. Additional Notes
-    # symptom_data['notes'] = st.text_area("Additional Notes")
-    
-    # 8. Submit Button
-    if st.button("Record Symptoms"):
-        
-        if not selected_symptoms:
-            st.error("❌ Please select at least one symptom")
-        else:
-            from services.symptom_service import SymptomService
-            
-            patient_id = st.session_state.get("patient_id", "patient_001")
-            response = SymptomService.submit_symptoms(patient_id, symptom_data)
-            
-            if response.get('success'):
-                st.success(f"✓ Symptoms recorded! ID: {response.get('id')}")
-            else:
-                st.error(f"Error: {response.get('error', 'Unknown error')}")
+    return symptom_data
 
-symptom_form()
+    
+#symptom_form()

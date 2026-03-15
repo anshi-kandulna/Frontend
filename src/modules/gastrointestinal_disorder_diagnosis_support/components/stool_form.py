@@ -69,7 +69,7 @@ def stool_form():
     # 5. Abnormal Features
     st.subheader("Abnormal Features (Check if present)")
     abnormal_features = {
-        "Blood": st.checkbox("Blood"),
+        #"Blood": st.checkbox("Blood"),
         "Mucus": st.checkbox("Mucus/Slime"),
         "Greasy/Oily": st.checkbox("Greasy/Oily appearance"),
         "Undigested Food": st.checkbox("Undigested Food Particles"),
@@ -79,16 +79,16 @@ def stool_form():
     stool_data['abnormal_features'] = [k for k, v in abnormal_features.items() if v]
     
     # 6. Blood Details (if present)
-    if abnormal_features['Blood']:
-        st.subheader("Blood Details")
-        stool_data['blood_type'] = st.selectbox(
-            "Type of blood",
-            ["Bright Red", "Dark Red", "Mixed in stool", "On tissue"]
-        )
-        stool_data['blood_amount'] = st.selectbox(
-            "Amount",
-            ["Trace/Minimal", "Small", "Moderate", "Significant"]
-        )
+    # if abnormal_features['Blood']:
+    #     st.subheader("Blood Details")
+    #     stool_data['blood_type'] = st.selectbox(
+    #         "Type of blood",
+    #         ["Bright Red", "Dark Red", "Mixed in stool", "On tissue"]
+    #     )
+    #     stool_data['blood_amount'] = st.selectbox(
+    #         "Amount",
+    #         ["Trace/Minimal", "Small", "Moderate", "Significant"]
+    #     )
     
     # 7. Associated Symptoms
     st.subheader("Associated Symptoms")
@@ -113,44 +113,4 @@ def stool_form():
     # st.subheader("Additional Notes")
     # stool_data['notes'] = st.text_area("Any additional observations")
     
-    # 10. Submit Button
-    if st.button("Record Stool Analysis"):
-        errors = []
-        
-        # Validate required fields
-        if stool_data.get('date') is None:
-            errors.append("❌ Please select a date")
-        
-        if not stool_data.get('bristol_type'):
-            errors.append("❌ Please select a stool consistency type")
-        
-        if not stool_data.get('frequency'):
-            errors.append("❌ Please select a frequency")
-        
-        if errors:
-            for error in errors:
-                st.error(error)
-        else:
-            try:
-                patient_id = st.session_state.get("patient_id", "patient_001")
-                
-                # Debug: Show what we're sending
-                #st.write("📝 Submitting data...")
-                
-                response = StoolService.submit_stool_data(patient_id, stool_data)
-                
-                # Debug: Show the response
-                #st.write(f"Response: {response}")
-                
-                if response.get('success'):
-                    st.success(f"✓ Stool record created! ID: {response.get('id')}")
-                else:
-                    st.error(f"Backend Error: {response.get('error', 'Unknown error')}")
-            except Exception as e:
-                st.error(f"❌ Error: {str(e)}")
-                st.write(f"Full error details: {type(e).__name__}: {e}")
-
-    
-
-
-stool_form()
+    return stool_data

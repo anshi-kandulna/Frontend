@@ -33,8 +33,6 @@ class StoolService:
                 - color: str
                 - frequency: str
                 - abnormal_features: List[str]
-                - blood_type: str
-                - blood_amount: str
                 - symptoms: List[str]
                 - on_medication: bool
                 - medication_name: str
@@ -54,8 +52,8 @@ class StoolService:
                 "color": stool_data.get('color'),
                 "frequency": stool_data.get('frequency'),
                 "abnormal_features": stool_data.get('abnormal_features', []),
-                "blood_type": stool_data.get('blood_type'),
-                "blood_amount": stool_data.get('blood_amount'),
+                # "blood_type": stool_data.get('blood_type'),
+                # "blood_amount": stool_data.get('blood_amount'),
                 "symptoms": stool_data.get('symptoms', []),
                 "on_medication": stool_data.get('on_medication'),
                 "medication_name": stool_data.get('medication_name') if stool_data.get('on_medication') and stool_data.get('medication_name') != '' else None,

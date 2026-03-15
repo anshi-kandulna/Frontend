@@ -35,8 +35,8 @@ class StoolRequest(BaseModel):
     color: Optional[str] = None
     frequency: str
     abnormal_features: List[str] = []
-    blood_type: Optional[str] = None 
-    blood_amount: Optional[str] = None
+    # blood_type: Optional[str] = None 
+    # blood_amount: Optional[str] = None
     symptoms: List[str] = []
     on_medication: bool 
     medication_name: Optional[str] = None

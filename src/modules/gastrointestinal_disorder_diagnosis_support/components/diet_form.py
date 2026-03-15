@@ -92,30 +92,4 @@ def diet_form():
     # st.subheader("Additional Notes")
     # diet_data['notes'] = st.text_area("Any additional notes about the meal")
     
-    # 10. Submit Button
-    if st.button("Record Meal"):
-        errors = []
-        
-        # Validate required fields (with *)
-        if not diet_data.get('meal_time'):
-            errors.append("❌ Please select date and time")
-        
-        if not diet_data.get('food_category'):
-            errors.append("❌ Please select at least one food category")
-        
-        if errors:
-            for error in errors:
-                st.error(error)
-        else:
-            patient_id = st.session_state.get("patient_id", "patient_001")
-            response = DietService.submit_diet_data(patient_id, diet_data)
-            
-            if response.get('success'):
-                st.success(f"✓ Meal recorded! ID: {response.get('id')}")
-            else:
-                st.error(f"Error: {response.get('error', 'Unknown error')}")
-    
-    return None
-
-
-diet_form()
+    return diet_data
