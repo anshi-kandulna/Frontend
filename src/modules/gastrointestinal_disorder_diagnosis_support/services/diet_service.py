@@ -50,9 +50,9 @@ class DietService:
             }
             
             response = requests.post(
-                f"{DietService.BASE_URL}/diet",
+                f"{DietService.BASE_URL}/api/diet",
                 json=payload,
-                timeout=5
+                timeout=20
             )
             return response.json()
         

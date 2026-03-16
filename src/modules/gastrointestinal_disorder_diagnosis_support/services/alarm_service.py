@@ -67,11 +67,13 @@ class AlarmService:
             }
             
             response = requests.post(
-                f"{AlarmService.BASE_URL}/alarms",
+                f"{AlarmService.BASE_URL}/api/alarms",
                 json=payload,
-                timeout=5
+                timeout=20
             )
             return response.json()
         
         except Exception as e:
             return {"error": str(e), "success": False}
+        
+print(AlarmService.BASE_URL)

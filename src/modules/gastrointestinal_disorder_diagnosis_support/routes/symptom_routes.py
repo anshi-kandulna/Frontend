@@ -47,3 +47,29 @@ def create_symptom(data: SymptomRequest):
         print(f"\n❌ ERROR: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
+@symptom_router.get("/{patient_id}")
+def get_patient_symptoms(patient_id: str):
+    """
+    Retrieve all symptoms for a patient from MongoDB
+    """
+    try:
+        if not patient_id:
+            raise HTTPException(status_code=400, detail="patient_id required")
+        
+        # Find all symptoms for this patient
+        symptoms = list(symptoms_collection.find({"patient_id": patient_id}))
+        
+        # Convert ObjectId to string for JSON serialization
+        for symptom in symptoms:
+            symptom["_id"] = str(symptom["_id"])
+        
+        return {
+            "success": True,
+            "data": symptoms,
+            "count": len(symptoms)
+        }
+    
+    except Exception as e:
+        print(f"\n❌ ERROR: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))

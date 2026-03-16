@@ -48,9 +48,9 @@ class SymptomService:
             }
             
             response = requests.post(
-                f"{SymptomService.BASE_URL}/symptoms",
+                f"{SymptomService.BASE_URL}/api/symptoms",
                 json=payload,
-                timeout=5
+                timeout=20
             )
             return response.json()
         except Exception as e:
@@ -70,8 +70,8 @@ class SymptomService:
         """
         try:
             response = requests.get(
-                f"{SymptomService.BASE_URL}/symptoms/{patient_id}",
-                timeout=5
+                f"{SymptomService.BASE_URL}/api/symptoms/{patient_id}",
+                timeout=20
             )
             return response.json()
         except Exception as e:
@@ -83,7 +83,7 @@ class SymptomService:
         try:
             response = requests.get(
                 f"{SymptomService.BASE_URL}/symptoms/{patient_id}/latest",
-                timeout=5
+                timeout=20
             )
             data = response.json()
             return data.get('data') if data.get('success') else None

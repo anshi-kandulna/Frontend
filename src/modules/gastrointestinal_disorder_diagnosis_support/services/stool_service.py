@@ -62,9 +62,9 @@ class StoolService:
             }
             
             response = requests.post(
-                f"{StoolService.BASE_URL}/stool",
+                f"{StoolService.BASE_URL}/api/stool",
                 json=payload,
-                timeout=5
+                timeout=20
             )
             return response.json()
         
