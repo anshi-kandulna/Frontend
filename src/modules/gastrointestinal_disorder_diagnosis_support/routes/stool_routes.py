@@ -5,48 +5,17 @@ Receives data from frontend and saves to MongoDB
 """
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
-from typing import List, Optional, Dict
-from datetime import datetime
-import os
-from pymongo import MongoClient
 from bson import ObjectId
+from database.mongo import db
+from models.stool_model import StoolRequest, StoolResponse
 
-from dotenv import load_dotenv
 
-load_dotenv()
-
-MONGO_URI = os.getenv("MONGO_URI")
-client = MongoClient(MONGO_URI)
-
-db = client['patient']  # Database name
+# Initialize MongoDB
 stool_collection = db['patient_stool']  # Collection name
 
 # Create FastAPI Router
 stool_router = APIRouter(prefix="/api/stool", tags=["stool"])
 
-# Request models
-class StoolRequest(BaseModel):
-    #model_config = ConfigDict(arbitrary_types_allowed=True)
-    #patient_id: ObjectId
-    patient_id: str
-    date: datetime #pydantic will automatically convert date string to datetime object
-    bristol_type: str 
-    color: Optional[str] = None
-    frequency: str
-    abnormal_features: List[str] = []
-    # blood_type: Optional[str] = None 
-    # blood_amount: Optional[str] = None
-    symptoms: List[str] = []
-    on_medication: bool 
-    medication_name: Optional[str] = None
-    recent_antibiotics: bool 
-    created_at: datetime
-
-class StoolResponse(BaseModel):
-    success: bool
-    message: str
-    id: Optional[str] = None
 
 @stool_router.post("", response_model=StoolResponse)
 def create_stool(data: StoolRequest):

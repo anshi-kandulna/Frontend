@@ -5,42 +5,18 @@ Receives data from frontend and saves to MongoDB
 """
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
-from typing import List, Optional, Dict
-from datetime import datetime
-import os
-from pymongo import MongoClient
 from bson import ObjectId
+from database.mongo import db
+from models.diet_model import DietRequest, DietResponse
 
-from dotenv import load_dotenv
 
-load_dotenv()
 
-MONGO_URI = os.getenv("MONGO_URI")
-client = MongoClient(MONGO_URI)
-
-db = client['patient']  # Database name
+# Initialize MongoDB
 diet_collection = db['patient_diet']  # Collection name
 
 # Create FastAPI Router
 diet_router = APIRouter(prefix="/api/diet", tags=["diet"])
 
-# Request models
-class DietRequest(BaseModel):
-    #model_config = ConfigDict(arbitrary_types_allowed=True)
-    #patient_id: ObjectId
-    patient_id: str
-    meal_time: datetime
-    food_category: List[str]
-    portion_size: Optional[str] = None
-    allergens: List[str] = []
-    symptoms_after_eating: List[str] = []
-    created_at: datetime
-
-class DietResponse(BaseModel):
-    success: bool
-    message: str
-    id: Optional[str] = None
 
 @diet_router.post("", response_model=DietResponse)
 def create_diet(data: DietRequest):

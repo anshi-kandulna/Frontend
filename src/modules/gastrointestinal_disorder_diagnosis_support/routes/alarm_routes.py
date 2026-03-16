@@ -5,49 +5,17 @@ Receives data from frontend and saves to MongoDB
 """
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
-from typing import List, Optional
-from datetime import datetime
-import os
-from pymongo import MongoClient
 from bson import ObjectId
+from database.mongo import db
+from models.alarm_model import AlarmRequest, AlarmResponse
 
-from dotenv import load_dotenv
 
-load_dotenv()
-
-MONGO_URI = os.getenv("MONGO_URI")
-client = MongoClient(MONGO_URI)
-
-db = client['patient']  # Database name
-alarm_collection = db['patient_alarms']  # Collection name
+# Initialize MongoDB
+alarm_collection = db['patient_alarms']  
 
 # Create FastAPI Router
 alarm_router = APIRouter(prefix="/api/alarms", tags=["alarms"])
 
-# Request models
-class AlarmRequest(BaseModel):
-    patient_id: str
-    severe_dehydration: bool = False
-    signs_of_dehydration: Optional[List[str]] = []
-    weight_loss: bool = False
-    weight_lost_kg: Optional[float] = None
-    weight_loss_period: Optional[str] = None
-    bleeding: bool = False
-    bleeding_type: Optional[str] = None
-    bleeding_frequency: Optional[str] = None
-    nocturnal_symptoms: bool = False
-    nocturnal_symptom: Optional[str] = None
-    nocturnal_frequency: Optional[str] = None
-    family_history: List[str] = []
-    fever: bool = False
-    fever_temp: Optional[float] = None
-    created_at: datetime
-
-class AlarmResponse(BaseModel):
-    success: bool
-    message: str
-    id: Optional[str] = None
 
 @alarm_router.post("", response_model=AlarmResponse)
 def create_alarm(data: AlarmRequest):

@@ -1,7 +1,0 @@
-streamlit
-fastapi
-uvicorn
-pymongo
-python-dotenv
-requests
-pydantic

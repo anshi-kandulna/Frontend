@@ -45,7 +45,6 @@ def symptom_form():
     st.subheader("Onset Date")
     symptom_data['onset_date'] = st.date_input(
         "When did symptoms start?",
-        value=None,
         key="onset_date"
     )
     

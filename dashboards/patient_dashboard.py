@@ -2,6 +2,7 @@
 import streamlit as st
 from components.sidebar import sidebar
 from components.charts import patient_line_chart, appointment_donut_chart
+from src.modules.gastrointestinal_disorder_diagnosis_support.database.mongo import db
 
 # All categories and their modules
 CATEGORIES = {
@@ -404,7 +405,7 @@ def show_module_detail():
         #     st.success("2️⃣ Admission Summary")
         #     st.success("3️⃣ Patient ID")
 
-        from src.modules.gastrointestinal_disorder_diagnosis_support.components import gi_dashboard
+        from src.modules.gastrointestinal_disorder_diagnosis_support.component import gi_dashboard
         gi_dashboard()
     
     elif tab == "🔗 ER Diagram":
@@ -420,20 +421,199 @@ def show_module_detail():
         })
     
     elif tab == "🔍 SQL Query":
-        st.markdown("### Sample SQL Queries")
-        st.code(f"""
--- Query for {name}
-SELECT p.patient_id, p.name, p.age, i.insurance_type
-FROM patients p
-LEFT JOIN insurance i ON p.id = i.patient_id
-WHERE p.status = 'active'
-ORDER BY p.admission_date DESC
-LIMIT 100;
-""", language="sql")
+#         st.markdown("### Sample SQL Queries")
+#         st.code(f"""
+# -- Query for {name}
+# SELECT p.patient_id, p.name, p.age, i.insurance_type
+# FROM patients p
+# LEFT JOIN insurance i ON p.id = i.patient_id
+# WHERE p.status = 'active'
+# ORDER BY p.admission_date DESC
+# LIMIT 100;
+# """, language="sql")
         
-        if st.button("▶️ Execute Query"):
-            st.success("Query executed successfully! 1,234 rows returned.")
-    
+#         if st.button("▶️ Execute Query"):
+#             st.success("Query executed successfully! 1,234 rows returned.")
+        st.markdown("### Symptom–Diet Correlation Analysis")
+
+        # --- SQL Query (Requirement) ---
+        sql_query = """
+        SELECT 
+            d.food_category,
+            s.symptom,
+            COUNT(*) AS occurrence_count
+        FROM patient_diet d
+        JOIN patient_symptoms s
+            ON d.patient_id = s.patient_id
+        WHERE s.onset_date >= d.meal_time
+        GROUP BY d.food_category, s.symptom
+        ORDER BY occurrence_count DESC
+        LIMIT 100;
+        """
+
+        st.markdown("#### SQL Query")
+        st.code(sql_query, language="sql")
+
+
+        # --- Mongo Equivalent ---
+        mongo_query = """
+        db.patient_diet.aggregate([
+        { $unwind: "$food_category" },
+        { $unwind: "$symptoms_after_eating" },
+        {
+            $group: {
+            _id: {
+                food: "$food_category",
+                symptom: "$symptoms_after_eating"
+            },
+            count: { $sum: 1 }
+            }
+        },
+        { $sort: { count: -1 } },
+        {"$limit": 100}
+        ])
+        """
+
+        st.markdown("#### MongoDB Aggregation")
+        st.code(mongo_query, language="javascript")
+
+
+        # --- Execute Query ---
+        if st.button("▶ Execute Correlation Analysis"):
+
+            pipeline = [
+                {"$unwind": "$food_category"},
+                {"$unwind": "$symptoms_after_eating"},
+                {
+                    "$group": {
+                        "_id": {
+                            "food": "$food_category",
+                            "symptom": "$symptoms_after_eating"
+                        },
+                        "count": {"$sum": 1}
+                    }
+                },
+                {"$sort": {"count": -1}},
+                {"$limit": 100}
+            ]
+
+            result = list(db.patient_diet.aggregate(pipeline))
+
+            if result:
+                import pandas as pd
+
+                data = []
+                for r in result:
+                    data.append({
+                        "Food": r["_id"]["food"],
+                        "Symptom": r["_id"]["symptom"],
+                        "Occurrences": r["count"]
+                    })
+
+                df = pd.DataFrame(data)
+
+                st.success("Query executed successfully!")
+
+                st.dataframe(df)
+
+                st.markdown("#### Correlation Visualization")
+                st.bar_chart(df.set_index("Food")["Occurrences"])
+
+            else:
+                st.warning("No correlation data found.")
+
+        st.markdown("### Temporal Pattern Recognition")
+
+        patient_id = st.text_input("Enter Patient ID for Temporal Pattern Analysis", value="002")
+        #patient_id = "002"
+
+        # --- SQL Query (Requirement) ---
+        sql_query = f"""
+    SELECT 
+        symptom,
+        DATE(onset_date) AS symptom_day,
+        COUNT(*) AS frequency
+    FROM patient_symptoms
+    WHERE patient_id = '{patient_id}'
+    GROUP BY symptom, DATE(onset_date)
+    ORDER BY symptom_day DESC
+    LIMIT 50;
+    """
+
+        st.markdown("#### SQL Query")
+        st.code(sql_query, language="sql")
+
+
+        # --- Mongo Equivalent ---
+        mongo_query = f"""
+    db.patient_symptoms.aggregate([
+    {{ $match: {{ patient_id: "{patient_id}" }} }},
+    {{
+        $group: {{
+        _id: {{
+            symptom: "$symptom",
+            day: {{ $dateToString: {{ format: "%Y-%m-%d", date: "$onset_date" }} }}
+        }},
+        frequency: {{ $sum: 1 }}
+        }}
+    }},
+    {{ $sort: {{ "_id.day": -1 }} }},
+    {{ $limit: 50 }}
+    ])
+    """
+
+        st.markdown("#### MongoDB Aggregation")
+        st.code(mongo_query, language="javascript")
+
+
+        # --- Execute Query ---
+        if st.button("▶ Execute Temporal Pattern Analysis"):
+
+            pipeline = [
+                {"$match": {"patient_id": patient_id}},
+                {"$unwind": "$symptoms"},
+                {
+                    "$group": {
+                        "_id": {
+                            "symptom": "$symptoms.symptom_name",
+                            "day": {
+                                "$dateToString": {
+                                    "format": "%Y-%m-%d",
+                                    "date": "$onset_date"
+                                }
+                            }
+                        },
+                        "frequency": {"$sum": 1}
+                    }
+                },
+                {"$sort": {"_id.day": -1}},
+                {"$limit": 50}
+            ]
+
+            result = list(db.patient_symptoms.aggregate(pipeline))
+
+            if result:
+                import pandas as pd
+
+                data = []
+                for r in result:
+                    data.append({
+                        "Symptom": r["_id"]["symptom"],
+                        "Date": r["_id"]["day"],
+                        "Frequency": r["frequency"]
+                    })
+
+                df = pd.DataFrame(data)
+
+                st.success("Query executed successfully!")
+                st.dataframe(df)
+
+                st.markdown("#### Temporal Pattern Visualization")
+                st.line_chart(df.set_index("Date")["Frequency"])
+
+            else:
+                st.warning("No temporal patterns found.")
+            
     elif tab == "⚡ Triggers":
         st.markdown("### Database Triggers")
         st.code(f"""
