@@ -5,8 +5,8 @@ Receives data from frontend and saves to MongoDB
 """
 
 from fastapi import APIRouter, HTTPException
-from database.mongo import db
-from models.symptom_model import SymptomRequest, SymptomResponse
+from ..database.mongo import db
+from ..models.symptom_model import SymptomRequest, SymptomResponse
 #from models.symptom_schema import SYMPTOM_COLLECTION
 
 

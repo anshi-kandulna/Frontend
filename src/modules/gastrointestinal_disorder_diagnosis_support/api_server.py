@@ -12,7 +12,7 @@ import os
 from dotenv import load_dotenv
 
 # Import routes
-from routes import symptom_router, stool_router, diet_router, alarm_router
+from .routes import symptom_router, stool_router, diet_router, alarm_router
 
 load_dotenv()
 

@@ -6,8 +6,8 @@ Receives data from frontend and saves to MongoDB
 
 from fastapi import APIRouter, HTTPException
 from bson import ObjectId
-from database.mongo import db
-from models.diet_model import DietRequest, DietResponse
+from ..database.mongo import db
+from ..models.diet_model import DietRequest, DietResponse
 
 
 

@@ -6,8 +6,8 @@ Receives data from frontend and saves to MongoDB
 
 from fastapi import APIRouter, HTTPException
 from bson import ObjectId
-from database.mongo import db
-from models.stool_model import StoolRequest, StoolResponse
+from ..database.mongo import db
+from ..models.stool_model import StoolRequest, StoolResponse
 
 
 # Initialize MongoDB
