@@ -6,4 +6,6 @@ Live Demo: 👉 [https://frontend-zxra8c5w4ip3f6k5gvjasp.streamlit.app/](https:/
 
 ![ER Diagram](./assets/erd.jpeg)
 
+B10 Link: https://frontend-ea333unt5neavvjmny6zed.streamlit.app/
+
 
