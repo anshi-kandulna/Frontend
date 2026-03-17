@@ -2,13 +2,8 @@
 
 import streamlit as st
 from datetime import datetime, time
-import sys
-import os
 
-# Add parent directory to path for imports
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from services.diet_service import DietService
+from ...services.diet_service import DietService
 
 def diet_form():
     """

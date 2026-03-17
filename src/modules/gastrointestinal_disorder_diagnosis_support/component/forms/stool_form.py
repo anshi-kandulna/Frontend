@@ -4,12 +4,7 @@
 # from datetime import datetime
 
 import streamlit as st
-import sys
-import os
-
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from services.stool_service import StoolService
+from ...services.stool_service import StoolService
 
 def stool_form():
     """

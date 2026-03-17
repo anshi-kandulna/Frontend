@@ -69,7 +69,7 @@ class AlarmService:
             response = requests.post(
                 f"{AlarmService.BASE_URL}/api/alarms",
                 json=payload,
-                timeout=20
+                timeout=5
             )
             return response.json()
         

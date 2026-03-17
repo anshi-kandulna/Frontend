@@ -5,13 +5,8 @@ Run with: streamlit run streamlit_app.py
 """
 
 import streamlit as st
-import sys
-import os
 
-# Add current directory to path for imports
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-from component import gi_dashboard
+from .component import gi_dashboard
 
 # Configure page
 st.set_page_config(

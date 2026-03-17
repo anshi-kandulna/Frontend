@@ -50,7 +50,7 @@ class SymptomService:
             response = requests.post(
                 f"{SymptomService.BASE_URL}/api/symptoms",
                 json=payload,
-                timeout=20
+                timeout=5
             )
             return response.json()
         except Exception as e:

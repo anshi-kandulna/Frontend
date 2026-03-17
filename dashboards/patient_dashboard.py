@@ -2,7 +2,6 @@
 import streamlit as st
 from components.sidebar import sidebar
 from components.charts import patient_line_chart, appointment_donut_chart
-from src.modules.gastrointestinal_disorder_diagnosis_support.database.mongo import db
 
 # All categories and their modules
 CATEGORIES = {
@@ -213,13 +212,13 @@ def show_main_dashboard():
     # Quick action buttons
     c1, c2, c3, c4 = st.columns(4)
     with c1:
-        st.button("📅 Book Appointment", use_container_width=True)
+        st.button("📅 Book Appointment", width='stretch')
     with c2:
-        st.button("📄 View Reports", use_container_width=True)
+        st.button("📄 View Reports", width='stretch')
     with c3:
-        st.button("💊 My Prescriptions", use_container_width=True)
+        st.button("💊 My Prescriptions", width='stretch')
     with c4:
-        st.button("🧪 Lab Results", use_container_width=True)
+        st.button("🧪 Lab Results", width='stretch')
 
     st.divider()
 
@@ -237,7 +236,7 @@ def show_main_dashboard():
                 st.caption("View your medical history, diagnoses, and treatment plans")
                 st.markdown("**12 Records**")
             with cat_col2:
-                if st.button("→", key="clinical", use_container_width=True):
+                if st.button("→", key="clinical", width='stretch'):
                     st.session_state.selected_category = "A - Patient Clinical Data"
                     st.session_state.view = "category"
                     st.rerun()
@@ -252,7 +251,7 @@ def show_main_dashboard():
                 st.caption("Access your lab test results and reports")
                 st.markdown("**5 Pending**")
             with cat_col2:
-                if st.button("→", key="laboratory", use_container_width=True):
+                if st.button("→", key="laboratory", width='stretch'):
                     st.session_state.selected_category = "B - Symptom-Disease Diagnosis"
                     st.session_state.view = "category"
                     st.rerun()
@@ -267,7 +266,7 @@ def show_main_dashboard():
                 st.caption("View prescriptions and medication history")
                 st.markdown("**3 Active**")
             with cat_col2:
-                if st.button("→", key="pharmacy", use_container_width=True):
+                if st.button("→", key="pharmacy", width='stretch'):
                     st.session_state.selected_category = "D - Drug & Prescription Safety"
                     st.session_state.view = "category"
                     st.rerun()
@@ -282,7 +281,7 @@ def show_main_dashboard():
                 st.caption("View invoices, payments, and insurance claims")
                 st.markdown("**2 Pending**")
             with cat_col2:
-                if st.button("→", key="billing", use_container_width=True):
+                if st.button("→", key="billing", width='stretch'):
                     st.session_state.selected_category = "G - Secure EHR & Access Control"
                     st.session_state.view = "category"
                     st.rerun()
@@ -306,7 +305,7 @@ def show_main_dashboard():
             st.caption("📅 Jan 15, 2026  🕐 2:00 PM")
         
         st.markdown("---")
-        st.button("📅 Book New Appointment", use_container_width=True)
+        st.button("📅 Book New Appointment", width='stretch')
         
         st.divider()
         
@@ -337,7 +336,7 @@ def show_category_view():
         st.markdown(f"# {category['icon']} {category['title']}")
         st.markdown(f"*{category['description']}*")
     with col2:
-        st.button("📄 Export Data", use_container_width=True)
+        st.button("📄 Export Data", width='stretch')
     
     st.divider()
     
@@ -365,7 +364,7 @@ def show_category_view():
                 mcol1.metric("Tables", tables)
                 mcol2.metric("Records", f"{records:,}")
                 
-                if st.button("→", key=f"mod_{code}", use_container_width=True):
+                if st.button("→", key=f"mod_{code}", width='stretch'):
                     st.session_state.selected_module = module
                     st.session_state.view = "module"
                     st.rerun()
@@ -421,6 +420,9 @@ def show_module_detail():
         })
     
     elif tab == "🔍 SQL Query":
+        from src.modules.gastrointestinal_disorder_diagnosis_support.component.sql import sql_query_component
+        sql_query_component()
+
 #         st.markdown("### Sample SQL Queries")
 #         st.code(f"""
 # -- Query for {name}
@@ -434,202 +436,27 @@ def show_module_detail():
         
 #         if st.button("▶️ Execute Query"):
 #             st.success("Query executed successfully! 1,234 rows returned.")
-        st.markdown("### Symptom–Diet Correlation Analysis")
+        
 
-        # --- SQL Query (Requirement) ---
-        sql_query = """
-        SELECT 
-            d.food_category,
-            s.symptom,
-            COUNT(*) AS occurrence_count
-        FROM patient_diet d
-        JOIN patient_symptoms s
-            ON d.patient_id = s.patient_id
-        WHERE s.onset_date >= d.meal_time
-        GROUP BY d.food_category, s.symptom
-        ORDER BY occurrence_count DESC
-        LIMIT 100;
-        """
-
-        st.markdown("#### SQL Query")
-        st.code(sql_query, language="sql")
-
-
-        # --- Mongo Equivalent ---
-        mongo_query = """
-        db.patient_diet.aggregate([
-        { $unwind: "$food_category" },
-        { $unwind: "$symptoms_after_eating" },
-        {
-            $group: {
-            _id: {
-                food: "$food_category",
-                symptom: "$symptoms_after_eating"
-            },
-            count: { $sum: 1 }
-            }
-        },
-        { $sort: { count: -1 } },
-        {"$limit": 100}
-        ])
-        """
-
-        st.markdown("#### MongoDB Aggregation")
-        st.code(mongo_query, language="javascript")
-
-
-        # --- Execute Query ---
-        if st.button("▶ Execute Correlation Analysis"):
-
-            pipeline = [
-                {"$unwind": "$food_category"},
-                {"$unwind": "$symptoms_after_eating"},
-                {
-                    "$group": {
-                        "_id": {
-                            "food": "$food_category",
-                            "symptom": "$symptoms_after_eating"
-                        },
-                        "count": {"$sum": 1}
-                    }
-                },
-                {"$sort": {"count": -1}},
-                {"$limit": 100}
-            ]
-
-            result = list(db.patient_diet.aggregate(pipeline))
-
-            if result:
-                import pandas as pd
-
-                data = []
-                for r in result:
-                    data.append({
-                        "Food": r["_id"]["food"],
-                        "Symptom": r["_id"]["symptom"],
-                        "Occurrences": r["count"]
-                    })
-
-                df = pd.DataFrame(data)
-
-                st.success("Query executed successfully!")
-
-                st.dataframe(df)
-
-                st.markdown("#### Correlation Visualization")
-                st.bar_chart(df.set_index("Food")["Occurrences"])
-
-            else:
-                st.warning("No correlation data found.")
-
-        st.markdown("### Temporal Pattern Recognition")
-
-        patient_id = st.text_input("Enter Patient ID for Temporal Pattern Analysis", value="002")
-        #patient_id = "002"
-
-        # --- SQL Query (Requirement) ---
-        sql_query = f"""
-    SELECT 
-        symptom,
-        DATE(onset_date) AS symptom_day,
-        COUNT(*) AS frequency
-    FROM patient_symptoms
-    WHERE patient_id = '{patient_id}'
-    GROUP BY symptom, DATE(onset_date)
-    ORDER BY symptom_day DESC
-    LIMIT 50;
-    """
-
-        st.markdown("#### SQL Query")
-        st.code(sql_query, language="sql")
-
-
-        # --- Mongo Equivalent ---
-        mongo_query = f"""
-    db.patient_symptoms.aggregate([
-    {{ $match: {{ patient_id: "{patient_id}" }} }},
-    {{
-        $group: {{
-        _id: {{
-            symptom: "$symptom",
-            day: {{ $dateToString: {{ format: "%Y-%m-%d", date: "$onset_date" }} }}
-        }},
-        frequency: {{ $sum: 1 }}
-        }}
-    }},
-    {{ $sort: {{ "_id.day": -1 }} }},
-    {{ $limit: 50 }}
-    ])
-    """
-
-        st.markdown("#### MongoDB Aggregation")
-        st.code(mongo_query, language="javascript")
-
-
-        # --- Execute Query ---
-        if st.button("▶ Execute Temporal Pattern Analysis"):
-
-            pipeline = [
-                {"$match": {"patient_id": patient_id}},
-                {"$unwind": "$symptoms"},
-                {
-                    "$group": {
-                        "_id": {
-                            "symptom": "$symptoms.symptom_name",
-                            "day": {
-                                "$dateToString": {
-                                    "format": "%Y-%m-%d",
-                                    "date": "$onset_date"
-                                }
-                            }
-                        },
-                        "frequency": {"$sum": 1}
-                    }
-                },
-                {"$sort": {"_id.day": -1}},
-                {"$limit": 50}
-            ]
-
-            result = list(db.patient_symptoms.aggregate(pipeline))
-
-            if result:
-                import pandas as pd
-
-                data = []
-                for r in result:
-                    data.append({
-                        "Symptom": r["_id"]["symptom"],
-                        "Date": r["_id"]["day"],
-                        "Frequency": r["frequency"]
-                    })
-
-                df = pd.DataFrame(data)
-
-                st.success("Query executed successfully!")
-                st.dataframe(df)
-
-                st.markdown("#### Temporal Pattern Visualization")
-                st.line_chart(df.set_index("Date")["Frequency"])
-
-            else:
-                st.warning("No temporal patterns found.")
-            
     elif tab == "⚡ Triggers":
-        st.markdown("### Database Triggers")
-        st.code(f"""
--- Trigger for {name}
-CREATE TRIGGER after_patient_insert
-AFTER INSERT ON patients
-FOR EACH ROW
-BEGIN
-  INSERT INTO audit_logs (entity_type, entity_id, action, timestamp)
-  VALUES ('patient', NEW.patient_id, 'INSERT', NOW());
+#         st.markdown("### Database Triggers")
+#         st.code(f"""
+# -- Trigger for {name}
+# CREATE TRIGGER after_patient_insert
+# AFTER INSERT ON patients
+# FOR EACH ROW
+# BEGIN
+#   INSERT INTO audit_logs (entity_type, entity_id, action, timestamp)
+#   VALUES ('patient', NEW.patient_id, 'INSERT', NOW());
   
-  -- Send notification
-  INSERT INTO notifications (user_id, message)
-  VALUES (NEW.assigned_doctor, CONCAT('New patient registered: ', NEW.name));
-END;
-""", language="sql")
+#   -- Send notification
+#   INSERT INTO notifications (user_id, message)
+#   VALUES (NEW.assigned_doctor, CONCAT('New patient registered: ', NEW.name));
+# END;
+# """, language="sql")
+
+        from src.modules.gastrointestinal_disorder_diagnosis_support.component.trigger import trigger_sql_query
+        trigger_sql_query()
     
     elif tab == "📊 Output":
         st.markdown("### Module Output")
