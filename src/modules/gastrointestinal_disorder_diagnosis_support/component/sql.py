@@ -10,28 +10,14 @@ def sql_query_component():
     with col1:
         st.markdown("**SQL Query**")
         st.code("""
-CREATE TRIGGER alarm_feature_trigger
-AFTER INSERT ON alarm_requests
-FOR EACH ROW
-BEGIN
-    IF NEW.weight_loss = TRUE
-    OR NEW.bleeding = TRUE
-    OR NEW.nocturnal_symptoms = TRUE
-    OR NEW.severe_dehydration = TRUE
-    OR NEW.fever = TRUE
-    THEN
-        INSERT INTO alarm_alerts (
-            patient_id,
-            alert_message,
-            created_at
-        )
-        VALUES (
-            NEW.patient_id,
-            'Serious GI alarm feature detected',
-            NOW()
-        );
-    END IF;
-END;
+SELECT 
+    food_category,
+    symptoms_after_eating,
+    COUNT(*) AS count
+FROM patient_diet
+GROUP BY food_category, symptoms_after_eating
+ORDER BY count DESC
+LIMIT 100;
         """, language="sql")
 
     with col2:
@@ -108,10 +94,11 @@ LIMIT 50;
         st.code(f"""
 db.patient_symptoms.aggregate([
   {{ $match: {{ patient_id: "{patient_id}" }} }},
+  {{ $unwind: "$symptoms" }},
   {{
     $group: {{
       _id: {{
-        symptom: "$symptom",
+        symptom: "$symptoms.symptom_name",
         day: {{
           $dateToString: {{
             format: "%Y-%m-%d",
@@ -125,7 +112,7 @@ db.patient_symptoms.aggregate([
   {{ $sort: {{ "_id.day": -1 }} }},
   {{ $limit: 50 }}
 ])
-        """, language="javascript")
+""", language="javascript")
 
     if st.button("▶ Execute Temporal Pattern Analysis"):
         pipeline = [
